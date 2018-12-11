@@ -158,15 +158,20 @@ void slowdownRobots(void)
 //------------------------------------------------------------------------
 int main(int argc, char** argv)
 {
-	//	We know that the arguments  of the program  are going
-	//	to be the width (number of columns) and height (number of rows) of the
-	//	grid, the number of boxes (and robots), and the number of doors.
-	//	You are going to have to extract these.  For the time being,
-	//	I hard code-some values
-	numRows = 16;
-	numCols = 20;
-	numDoors = 3;
-	numBoxes = 4;
+	//Read arguments
+	if(argc != 5)
+	{
+		fprintf(stderr, "Program requires 5 arguments");
+		return 1;
+	}
+	if(sscanf(argv[1], "%d", &numRows) != 1 ||
+		sscanf(argv[2], "%d", &numCols) != 1 ||
+		sscanf(argv[3], "%d", &numBoxes) != 1 ||
+		sscanf(argv[4], "%d", &numDoors) != 1)
+	{
+		fprintf(stderr, "Error parsing arguments");
+		return 1;
+	}
 
 	//	Even though we extracted the relevant information from the argument
 	//	list, I still need to pass argc and argv to the front-end init
