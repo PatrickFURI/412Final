@@ -5,10 +5,13 @@
 //  Created by Jean-Yves Hervé on 2018-12-05
 //	This is public domain code.  By all means appropriate it and change is to your
 //	heart's content.
+#include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <time.h>
-//
+#include <unistd.h>
+
 #include "gl_frontEnd.h"
 
 //==================================================================================
@@ -49,12 +52,110 @@ const int MAX_NUM_MESSAGES = 8;
 const int MAX_LENGTH_MESSAGE = 32;
 char** message;
 
+int robotLoc[][2] = {{12, 8}, {6, 9}, {3, 14}, {11, 15}};
+int boxLoc[][2] = {{6, 7}, {4, 12}, {13, 13}, {8, 12}};
+int doorAssign[] = {1, 0, 0, 2};	//	door id assigned to each robot-box pair
+int doorLoc[][2] = {{3, 3}, {8, 11}, {7, 10}};
+
+/*! \brief Moves robot to coordinates.
+\param robot Robot number.
+\param dir Direction to move in, either 'N', 'S', 'E', or 'W'.
+*/
+void moveRobot(unsigned robot, char dir)
+{
+	switch(dir)
+	{
+		case 'N':
+			robotLoc[robot][1]++;
+			break;
+		case 'S':
+			robotLoc[robot][1]--;
+			break;
+		case 'E':
+			robotLoc[robot][0]--;
+			break;
+		case 'W':
+			robotLoc[robot][0]++;
+			break;
+	}
+	usleep(robotSleepTime);
+}
+
+/*! \brief Solves problem for robot.
+\param robot Robot number to solve for.
+*/
+void solveRobot(unsigned robot)
+{
+	//find amount robot should move to reach box
+	int dxRob=boxLoc[robot][0] - robotLoc[robot][0];
+	int dyRob=boxLoc[robot][1] - robotLoc[robot][1];
+	//find amount box should move to reach door
+	int dxBox=doorLoc[doorAssign[robot]][0] - boxLoc[robot][0];
+	int dyBox=doorLoc[doorAssign[robot]][1] - boxLoc[robot][1];
+
+	//adjust robot goal position for box movement direction
+	if(dxBox > 0)
+		dxRob--;
+	else if(dxBox < 0)
+		dxRob++;
+	else
+		if(dyBox > 0)
+			dyRob--;
+		else if(dyBox < 0)
+			dyRob++;
+		//problem was solved by other robot since box is on door
+		else
+			return;
+	
+	//go to correct x position for robot
+	while(dxRob != 0)
+	{
+		if(dxRob > 0)
+		{
+			moveRobot(robot, 'W');
+			dxRob--;
+		}
+		else
+		{
+			moveRobot(robot, 'E');
+			dxRob++;
+		}
+	}
+	//go to correct y position for robot
+	while(dyRob != 0)
+	{
+		if(dyRob > 0)
+		{
+			moveRobot(robot, 'N');
+			dyRob--;
+		}
+		else
+		{
+			moveRobot(robot, 'S');
+			dyRob++;
+		}
+	}
+}
+
+/*! \brief Function for main logic thread to run.
+\param arg NULL
+\return NULL
+*/
+void *mainThreadFunc(void *arg)
+{
+	solveRobot(0);
+	solveRobot(1);
+	solveRobot(2);
+	solveRobot(3);
+	
+	return NULL;
+}
+
 //==================================================================================
 //	These are the functions that tie the simulation with the rendering.
 //	Some parts are "don't touch."  Other parts need your intervention
 //	to make sure that access to critical section is properly synchronized
 //==================================================================================
-
 
 void displayGridPane(void)
 {
@@ -64,16 +165,6 @@ void displayGridPane(void)
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 
-	//-----------------------------
-	//	CHANGE THIS
-	//-----------------------------
-	//	Here I hard-code myself some data for robots and doors.  Obviously this code
-	//	this code must go away.  I just want to show you how to display the information
-	//	about a robot-box pair or a door.
-	int robotLoc[][2] = {{12, 8}, {6, 9}, {3, 14}, {11, 15}};
-	int boxLoc[][2] = {{6, 7}, {4, 12}, {13, 13}, {8, 12}};
-	int doorAssign[] = {1, 0, 0, 2};	//	door id assigned to each robot-box pair
-	int doorLoc[][2] = {{3, 3}, {8, 11}, {7, 10}};
 	for (int i=0; i<numBoxes; i++)
 	{
 		//	here I would test if the robot thread is still live
@@ -149,9 +240,6 @@ void slowdownRobots(void)
 	robotSleepTime = (12 * robotSleepTime) / 10;
 }
 
-
-
-
 //------------------------------------------------------------------------
 //	You shouldn't have to change anything in the main function besides
 //	the initialization of numRows, numCos, numDoors, numBoxes.
@@ -161,7 +249,7 @@ int main(int argc, char** argv)
 	//Read arguments
 	if(argc != 5)
 	{
-		fprintf(stderr, "Program requires 5 arguments");
+		fprintf(stderr, "Program requires 4 arguments\n%s rows cols boxes doors\n", argv[0]);
 		return 1;
 	}
 	if(sscanf(argv[1], "%d", &numRows) != 1 ||
@@ -169,7 +257,12 @@ int main(int argc, char** argv)
 		sscanf(argv[3], "%d", &numBoxes) != 1 ||
 		sscanf(argv[4], "%d", &numDoors) != 1)
 	{
-		fprintf(stderr, "Error parsing arguments");
+		fprintf(stderr, "Error parsing arguments\n");
+		return 1;
+	}
+	if(numDoors > 3 || numDoors < 1)
+	{
+		fprintf(stderr, "Program supports only 1 to 3 doors\n");
 		return 1;
 	}
 
@@ -237,6 +330,15 @@ void initializeApplication(void)
 	//	normally, here I would initialize the location of my doors, boxes,
 	//	and robots, and create threads (not necessarily in that order).
 	//	For the handout I have nothing to do.
+	
+
+	//start main thread
+	pthread_t mainThread;
+	int errCode = pthread_create(&mainThread, NULL, mainThreadFunc, NULL);
+	if (errCode != 0)
+	{
+		printf ("could not pthread_create main thread. Error code %d: %s\n",
+			 errCode, strerror(errCode));
+		exit (13);
+	}
 }
-
-
