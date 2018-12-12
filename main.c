@@ -43,7 +43,7 @@ int numLiveThreads = 0;		//	the number of live robot threads
 
 //	robot sleep time between moves (in microseconds)
 const int MIN_SLEEP_TIME = 1000;
-int robotSleepTime = 100000;
+int robotSleepTime = 500000;
 
 //	An array of C-string where you can store things you want displayed
 //	in the state pane to display (for debugging purposes?)
@@ -53,7 +53,7 @@ const int MAX_LENGTH_MESSAGE = 32;
 char** message;
 
 int robotLoc[][2] = {{12, 8}, {6, 9}, {3, 14}, {11, 15}};
-int boxLoc[][2] = {{6, 7}, {4, 12}, {13, 13}, {8, 12}};
+int boxLoc[][2] = {{6, 8}, {4, 12}, {13, 13}, {8, 12}};
 int doorAssign[] = {1, 0, 0, 2};	//	door id assigned to each robot-box pair
 int doorLoc[][2] = {{3, 3}, {8, 11}, {7, 10}};
 
@@ -67,15 +67,23 @@ void moveRobot(unsigned robot, char dir)
 	{
 		case 'N':
 			robotLoc[robot][1]++;
+			if(robotLoc[robot][0] == boxLoc[robot][0] && robotLoc[robot][1] == boxLoc[robot][1])
+				boxLoc[robot][1]++;
 			break;
 		case 'S':
 			robotLoc[robot][1]--;
+			if(robotLoc[robot][0] == boxLoc[robot][0] && robotLoc[robot][1] == boxLoc[robot][1])
+				boxLoc[robot][1]--;
 			break;
 		case 'E':
 			robotLoc[robot][0]--;
+			if(robotLoc[robot][0] == boxLoc[robot][0] && robotLoc[robot][1] == boxLoc[robot][1])
+				boxLoc[robot][0]--;
 			break;
 		case 'W':
 			robotLoc[robot][0]++;
+			if(robotLoc[robot][0] == boxLoc[robot][0] && robotLoc[robot][1] == boxLoc[robot][1])
+				boxLoc[robot][0]++;
 			break;
 	}
 	usleep(robotSleepTime);
@@ -120,6 +128,24 @@ void solveRobot(unsigned robot)
 			moveRobot(robot, 'E');
 			dxRob++;
 		}
+		if(dxRob == 2 && dyRob == 0 && boxLoc[robot][0] - robotLoc[robot][0] == 1)
+		{
+			moveRobot(robot, 'N');
+			moveRobot(robot, 'W');
+			moveRobot(robot, 'W');
+			moveRobot(robot, 'S');
+			dxRob = 0;
+			break;
+		}
+		if(dxRob == -2 && dyRob == 0 && boxLoc[robot][0] - robotLoc[robot][0] == -1)
+		{
+			moveRobot(robot, 'S');
+			moveRobot(robot, 'E');
+			moveRobot(robot, 'E');
+			moveRobot(robot, 'N');
+			dxRob = 0;
+			break;
+		}
 	}
 	//go to correct y position for robot
 	while(dyRob != 0)
@@ -133,6 +159,52 @@ void solveRobot(unsigned robot)
 		{
 			moveRobot(robot, 'S');
 			dyRob++;
+		}
+	}
+	//go to correct x position for box
+	while(dxBox != 0)
+	{
+		if(dxBox > 0)
+		{
+			moveRobot(robot, 'W');
+			dxBox--;
+			//go to correct position to push
+			if(dxBox == 0)
+			{
+				if(dyBox > 0)
+					moveRobot(robot, 'S');
+				else if(dyBox < 0)
+					moveRobot(robot, 'N');
+				moveRobot(robot, 'W');
+			}
+		}
+		else
+		{
+			moveRobot(robot, 'E');
+			dxBox++;
+			//go to correct position to push
+			if(dxBox == 0)
+			{
+				if(dyBox > 0)
+					moveRobot(robot, 'S');
+				else if(dyBox < 0)
+					moveRobot(robot, 'N');
+				moveRobot(robot, 'E');
+			}
+		}
+	}
+	//go to correct y position for box
+	while(dyBox != 0)
+	{
+		if(dyBox > 0)
+		{
+			moveRobot(robot, 'N');
+			dyBox--;
+		}
+		else
+		{
+			moveRobot(robot, 'S');
+			dyBox++;
 		}
 	}
 }
