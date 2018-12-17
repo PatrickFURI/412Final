@@ -208,7 +208,7 @@ void drawGrid(void)
 		for (int i=0; i<= numRows; i++)
 		{
 			glVertex2i(0, i*DV);
-			glVertex2i(numCols*DV, i*DV);
+            glVertex2i(numCols*DH, i*DV);
 		}
 		//	Vertical
 		for (int j=0; j<= numCols; j++)
