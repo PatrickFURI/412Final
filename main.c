@@ -11,6 +11,7 @@
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
+#include <stdbool.h>
 
 #include "gl_frontEnd.h"
 
@@ -61,8 +62,14 @@ int doorLoc[][2] = {{3, 3}, {8, 11}, {7, 10}};
 \param robot Robot number.
 \param dir Direction to move in, either 'N', 'S', 'E', or 'W'.
 */
+
+FILE *fp; 
+
 void moveRobot(unsigned robot, char dir)
 {
+  
+  bool boxPushed = false; 
+  fp = fopen("robotSimulOut.txt", "ab"); 
 	switch(dir)
 	{
 		case 'N':
@@ -72,7 +79,7 @@ void moveRobot(unsigned robot, char dir)
 			break;
 		case 'S':
 			robotLoc[robot][1]--;
-			if(robotLoc[robot][0] == boxLoc[robot][0] && robotLoc[robot][1] == boxLoc[robot][1])
+	                if(robotLoc[robot][0] == boxLoc[robot][0] && robotLoc[robot][1] == boxLoc[robot][1])
 				boxLoc[robot][1]--;
 			break;
 		case 'E':
@@ -86,7 +93,9 @@ void moveRobot(unsigned robot, char dir)
 				boxLoc[robot][0]++;
 			break;
 	}
-	usleep(robotSleepTime);
+	usleep(robotSleepTime); 
+	fprintf(fp, "%s %d %s %c\n", "robot", robot, "move", dir);
+	fpclose(fp);
 }
 
 /*! \brief Solves problem for robot.
