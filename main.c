@@ -68,34 +68,46 @@ FILE *fp;
 void moveRobot(unsigned robot, char dir)
 {
   
-  bool boxPushed = false; 
-  fp = fopen("robotSimulOut.txt", "ab"); 
+        bool boxPushed = false; 
+        fp = fopen("robotSimulOut.txt", "ab"); 
 	switch(dir)
 	{
 		case 'N':
 			robotLoc[robot][1]++;
-			if(robotLoc[robot][0] == boxLoc[robot][0] && robotLoc[robot][1] == boxLoc[robot][1])
+			if(robotLoc[robot][0] == boxLoc[robot][0] && robotLoc[robot][1] == boxLoc[robot][1]) {
 				boxLoc[robot][1]++;
+			        boxPushed = true;
+			}
 			break;
 		case 'S':
 			robotLoc[robot][1]--;
-	                if(robotLoc[robot][0] == boxLoc[robot][0] && robotLoc[robot][1] == boxLoc[robot][1])
+	                if(robotLoc[robot][0] == boxLoc[robot][0] && robotLoc[robot][1] == boxLoc[robot][1]) {
 				boxLoc[robot][1]--;
+				boxPushed = true; 
+			}
 			break;
 		case 'E':
 			robotLoc[robot][0]--;
-			if(robotLoc[robot][0] == boxLoc[robot][0] && robotLoc[robot][1] == boxLoc[robot][1])
+			if(robotLoc[robot][0] == boxLoc[robot][0] && robotLoc[robot][1] == boxLoc[robot][1]) {
 				boxLoc[robot][0]--;
+				boxPushed = true; 
+			}
 			break;
 		case 'W':
 			robotLoc[robot][0]++;
-			if(robotLoc[robot][0] == boxLoc[robot][0] && robotLoc[robot][1] == boxLoc[robot][1])
+			if(robotLoc[robot][0] == boxLoc[robot][0] && robotLoc[robot][1] == boxLoc[robot][1]) {
 				boxLoc[robot][0]++;
+				boxPushed = true; 
+			}
 			break;
 	}
-	usleep(robotSleepTime); 
-	fprintf(fp, "%s %d %s %c\n", "robot", robot, "move", dir);
-	fpclose(fp);
+	usleep(robotSleepTime);
+	if (boxPushed) {
+	       fprintf(fp, "%s %d %s %c\n", "robot", robot, "push", dir);
+	} else {
+	       fprintf(fp, "%s %d %s %c\n", "robot", robot, "move", dir);
+	}
+	fclose(fp);
 }
 
 /*! \brief Solves problem for robot.
