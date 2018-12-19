@@ -53,10 +53,14 @@ const int MAX_NUM_MESSAGES = 8;
 const int MAX_LENGTH_MESSAGE = 32;
 char** message;
 
+//location arrays
 int **robotLoc = NULL;
 int **boxLoc = NULL;
 int *doorAssign = NULL;
 int **doorLoc = NULL;
+
+//output file pointer
+FILE *fp; 
 
 /*! \brief Test if position is in array.
 \param curArray Array currently being populated.
@@ -117,9 +121,7 @@ void randomlyGeneratePositions() {
 */
 void moveRobot(unsigned robot, char dir)
 {
-        FILE *fp;
         bool boxPushed = false; 
-        fp = fopen("robotSimulOut.txt", "w"); 
 	switch(dir)
 	{
 		case 'N':
@@ -157,7 +159,6 @@ void moveRobot(unsigned robot, char dir)
 	} else {
 	       fprintf(fp, "%s %d %s %c\n", "robot", robot, "move", dir);
 	}
-	fclose(fp);
 }
 
 /*! \brief Solves problem for robot.
@@ -431,6 +432,7 @@ int main(int argc, char** argv)
 		fprintf(stderr, "Program supports only 1 to 3 doors\n");
 		return 1;
 	}
+	fp = fopen("robotSimulOut.txt", "w");
 
 	//	Even though we extracted the relevant information from the argument
 	//	list, I still need to pass argc and argv to the front-end init
