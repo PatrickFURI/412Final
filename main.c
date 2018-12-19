@@ -84,6 +84,7 @@ void randomlyGeneratePositions() {
 	}
 
   	// create an array that contains all the occupied positions
+	printf("%d\n", numBoxes + numBoxes + numDoors);
   	int **occupiedPositions = (int **) malloc((numBoxes + numBoxes + numDoors) * sizeof(int *));
   	for (int i=0; i<(numBoxes + numBoxes + numDoors); i++) {
     		occupiedPositions[i] = (int *) malloc(2 * sizeof(int)); 
@@ -131,13 +132,17 @@ printf("made it\n");
 		for (k=occupiedPosRow; k>=0; k--) {
 			if (occupiedPositions[occupiedPosRow][0] == row && occupiedPositions[occupiedPosRow][1] == col) {
 				uniqueLocation = false; 
+				printf("breaking");
 				break;
 			}
 			
 		}
 
+		printf("test");
+		printf("%d\n", k);
+
 		// if we've reached the end of the above for loop, we know that the position we generated is unique
-		if (k == 0) {
+		if (k == -1) {
 			uniqueLocation = true; 
 		}	
 	}
@@ -149,7 +154,7 @@ printf("made it\n");
 
     }
 
-  printf("made it again\n");
+  printf("current occupied position after robots: %d\n", occupiedPosRow);
    // fill the box array with random locations
    for (int i=0; i<numBoxes; i++) {
 	srand(time(0));
@@ -171,7 +176,7 @@ printf("made it\n");
 		}
 
 		// if we've reached the end of the above for loop, we know that the position we generated is unique
-		if (k == 0) {
+		if (k == -1) {
 			uniqueLocation = true; 
 		}	
 	}
@@ -183,8 +188,10 @@ printf("made it\n");
 
     } 
 
-  // fill the box array with random locations
-  for (int i=0; i<numBoxes; i++) {
+   printf("current occupied posotion after boxes: %d\n", occupiedPosRow);
+  // fill the door array with random locations
+  for (int i=0; i<numDoors; i++) {
+	printf("%d\n", occupiedPosRow);
 	srand(time(0));
 	bool uniqueLocation = false;
 	int row, col; 
@@ -204,17 +211,19 @@ printf("made it\n");
 		}
 
 		// if we've reached the end of the above for loop, we know that the position we generated is unique
-		if (k == 0) {
+		if (k == -1) {
 			uniqueLocation = true; 
 		}	
 	}
-	boxLoc[i][0] = row; 
-	boxLoc[i][1] = col; 
+	printf("made it through first loop\n");
+	doorLoc[i][0] = row; 
+	doorLoc[i][1] = col;	
 	occupiedPositions[occupiedPosRow][0] = row;
 	occupiedPositions[occupiedPosRow][1] = col;
-	occupiedPosRow++; 
+	occupiedPosRow++;
+    }
 
-    }   
+printf("done\n");  
 }
 
 void moveRobot(unsigned robot, char dir)
@@ -511,6 +520,7 @@ int main(int argc, char** argv)
 		return 1;
 	}
 
+	randomlyGeneratePositions();
 
 	//	Even though we extracted the relevant information from the argument
 	//	list, I still need to pass argc and argv to the front-end init
@@ -576,7 +586,7 @@ void initializeApplication(void)
 	//	normally, here I would initialize the location of my doors, boxes,
 	//	and robots, and create threads (not necessarily in that order).
 	//	For the handout I have nothing to do.
-	randomlyGeneratePositions();
+	//randomlyGeneratePositions();
 
 	//start main thread
 	pthread_t mainThread;
