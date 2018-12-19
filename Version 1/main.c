@@ -62,6 +62,29 @@ int **doorLoc = NULL;
 //output file pointer
 FILE *fp; 
 
+void printoutPositionInfo() {
+	// printout door positions
+	for (int i = 0; i < numDoors; i++) {
+		fprintf(fp, "Door %d: %d x %d (r x c)\n", i, doorLoc[i][0], doorLoc[i][1]);
+	}
+	fprintf(fp, "\n");
+	
+	// printout box information
+	for (int i = 0; i < numBoxes; i++) {
+		fprintf(fp, "Box %d: %d x %d (r x c)\n", i, boxLoc[i][0], boxLoc[i][1]); 
+	}
+	fprintf(fp, "\n");
+
+	// printout robot information (with its destination door)
+	for (int i = 0; i < numBoxes; i++) {
+		fprintf(fp, "Robot %d: %d x %d (r x c) at desination door: %d\n", 
+				i, robotLoc[i][0], robotLoc[i][1], doorAssign[i]); 
+	}
+        fprintf(fp, "\n");
+
+
+}
+
 /*! \brief Test if position is in array.
 \param curArray Array currently being populated.
 \param index Index to test in current array.
@@ -298,6 +321,7 @@ void solveRobot(unsigned robot)
 		}
 	}
 	//remove completed box and robot
+	fprintf(fp, "robot %d end\n", robot); 
 	boxLoc[robot][0] = -1;
 	boxLoc[robot][0] = -1;
 	robotLoc[robot][1] = -1;
@@ -431,7 +455,12 @@ int main(int argc, char** argv)
 		return 1;
 	}
 	fp = fopen("robotSimulOut.txt", "w");
+	
+	// print out output information
+	fprintf(fp, "Side of grid (r x c): %d x %d, Number of boxes: %d, Number of doors: %d\n\n", 
+			numRows, numCols, numBoxes, numDoors); 
 
+	
 	//	Even though we extracted the relevant information from the argument
 	//	list, I still need to pass argc and argv to the front-end init
 	//	function because that function passes them to glutInit, the required call
@@ -497,6 +526,7 @@ void initializeApplication(void)
 	//	and robots, and create threads (not necessarily in that order).
 	//	For the handout I have nothing to do.
 	randomlyGeneratePositions();
+	printoutPositionInfo(); 
 
 	//start main thread
 	pthread_t mainThread;
