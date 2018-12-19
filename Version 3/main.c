@@ -66,6 +66,29 @@ FILE *fp;
 pthread_mutex_t *fpLock;
 pthread_mutex_t **posLocks;
 
+void printoutPositionInfo() {
+	pthread_mutex_lock(fpLock);
+	// printout door positions
+	for (int i = 0; i < numDoors; i++) {
+		fprintf(fp, "Door %d: %d x %d (r x c)\n", i, doorLoc[i][0], doorLoc[i][1]);
+	}
+	fprintf(fp, "\n");
+	
+	// printout box information
+	for (int i = 0; i < numBoxes; i++) {
+		fprintf(fp, "Box %d: %d x %d (r x c)\n", i, boxLoc[i][0], boxLoc[i][1]); 
+	}
+	fprintf(fp, "\n");
+
+	// printout robot information (with its destination door)
+	for (int i = 0; i < numBoxes; i++) {
+		fprintf(fp, "Robot %d: %d x %d (r x c) at desination door: %d\n", 
+				i, robotLoc[i][0], robotLoc[i][1], doorAssign[i]); 
+	}
+        fprintf(fp, "\n");
+	pthread_mutex_unlock(fpLock);
+}
+
 /*! \brief Test if position is in array.
 \param curArray Array currently being populated.
 \param index Index to test in current array.
@@ -323,7 +346,9 @@ void *solveRobot(void *arg)
 		}
 	}
 	//remove completed box and robot
-	int boxX = boxLoc[robot][0];
+	pthread_mutex_lock(fpLock); 
+	fprintf(fp, "robot %d end\n", robot);
+	pthread_mutex_unlock(fpLock); 	int boxX = boxLoc[robot][0];
 	int robotX = robotLoc[robot][0];
 	boxLoc[robot][0] = -1;
 	robotLoc[robot][0] = -1;
@@ -551,7 +576,8 @@ void initializeApplication(void)
 	//	and robots, and create threads (not necessarily in that order).
 	//	For the handout I have nothing to do.
 	randomlyGeneratePositions();
-
+	printoutPositionInfo();
+	
 	//start main thread
 	pthread_t mainThread;
 	int errCode = pthread_create(&mainThread, NULL, mainThreadFunc, NULL);
