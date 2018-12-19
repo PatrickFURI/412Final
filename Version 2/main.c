@@ -326,6 +326,9 @@ void *solveRobot(void *arg)
 		}
 	}
 	//remove completed box and robot
+	pthread_mutex_lock(fpLock); 
+	fprintf(fp, "robot %d end\n", robot);
+	pthread_mutex_unlock(fpLock); 
 	boxLoc[robot][0] = -1;
 	boxLoc[robot][0] = -1;
 	robotLoc[robot][1] = -1;
@@ -542,6 +545,7 @@ void initializeApplication(void)
 	//	and robots, and create threads (not necessarily in that order).
 	//	For the handout I have nothing to do.
 	randomlyGeneratePositions();
+	printoutPositionInfo();
 
 	//start main thread
 	pthread_t mainThread;
