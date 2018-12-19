@@ -53,21 +53,173 @@ const int MAX_NUM_MESSAGES = 8;
 const int MAX_LENGTH_MESSAGE = 32;
 char** message;
 
-int robotLoc[][2] = {{12, 8}, {6, 9}, {3, 14}, {11, 15}};
-int boxLoc[][2] = {{6, 8}, {4, 12}, {13, 13}, {8, 12}};
-int doorAssign[] = {1, 0, 0, 2};	//	door id assigned to each robot-box pair
-int doorLoc[][2] = {{3, 3}, {8, 11}, {7, 10}};
+//int robotLoc[][2] = {{12, 8}, {6, 9}, {3, 14}, {11, 15}};
+int **robotLoc;
+
+//int boxLoc[][2] = {{6, 8}, {4, 12}, {13, 13}, {8, 12}};
+int **boxLoc;
+
+//int doorAssign[] = {1, 0, 0, 2};	//	door id assigned to each robot-box pair
+int *doorAssign;
+
+//int doorLoc[][2] = {{3, 3}, {8, 11}, {7, 10}};
+int **doorLoc;
 
 /*! \brief Moves robot to coordinates.
 \param robot Robot number.
 \param dir Direction to move in, either 'N', 'S', 'E', or 'W'.
 */
 
-FILE *fp; 
+
+//void writeHeader(
+
+void randomlyGeneratePositions() {
+
+	// assign the door ids to each robot-box pair
+	doorAssign = (int *) malloc(numBoxes * sizeof(int));
+	for (int i=0; i<numBoxes; i++) {
+		srand(time(0));
+		int doorID = rand() % numDoors;
+		doorAssign[i] = doorID;
+	}
+
+  	// create an array that contains all the occupied positions
+  	int **occupiedPositions = (int **) malloc((numBoxes + numBoxes + numDoors) * sizeof(int *));
+  	for (int i=0; i<(numBoxes + numBoxes + numDoors); i++) {
+    		occupiedPositions[i] = (int *) malloc(2 * sizeof(int)); 
+  	} 
+  	int occupiedPosRow = 0;
+
+  	// initialize array for robot locations
+  	robotLoc = (int **) malloc(numBoxes * sizeof(int *));
+  	for (int i=0; i<numBoxes; i++) {
+    		robotLoc[i] = (int *) malloc(2 * sizeof(int));
+  	}
+ 
+ 	// initialize array for box locations
+  	boxLoc = (int **) malloc(numBoxes * sizeof(int *));
+  	for (int i=0; i<numBoxes; i++) {
+    		boxLoc[i] = (int *) malloc(2 * sizeof(int));
+  	}
+
+ 
+  // initialize array for door locations
+  doorLoc = (int **) malloc(numBoxes * sizeof(int *));
+  for (int i=0; i<numBoxes; i++) {
+    doorLoc[i] = (int *) malloc(2 * sizeof(int));
+  }
+
+
+printf("made it\n");
+
+  // fill the robot array with random locations
+  for (int i=0; i<numBoxes; i++) {
+	printf("made it\n");
+	 srand(time(0));
+	bool uniqueLocation = false;
+	int row, col; 
+
+	printf("made it again");
+
+	while (uniqueLocation == false) {
+        	row = rand() % (numRows - 1);
+		col = rand() % (numCols - 1);
+		
+
+		// check if values are already occupied
+		int k;
+		for (k=occupiedPosRow; k>=0; k--) {
+			if (occupiedPositions[occupiedPosRow][0] == row && occupiedPositions[occupiedPosRow][1] == col) {
+				uniqueLocation = false; 
+				break;
+			}
+			
+		}
+
+		// if we've reached the end of the above for loop, we know that the position we generated is unique
+		if (k == 0) {
+			uniqueLocation = true; 
+		}	
+	}
+	robotLoc[i][0] = row; 
+	robotLoc[i][1] = col; 
+	occupiedPositions[occupiedPosRow][0] = row;
+	occupiedPositions[occupiedPosRow][1] = col;
+	occupiedPosRow++; 
+
+    }
+
+  printf("made it again\n");
+   // fill the box array with random locations
+   for (int i=0; i<numBoxes; i++) {
+	srand(time(0));
+	bool uniqueLocation = false;
+	int row, col; 
+
+	while (uniqueLocation == false) {
+        	row = (rand() % (numRows - 1)) + 1;
+		col = (rand() % (numCols - 1)) + 1;
+
+		// check if values are already occupied
+		int k;
+		for (k=occupiedPosRow; k>=0; k--) {
+			if (occupiedPositions[occupiedPosRow][0] == row && occupiedPositions[occupiedPosRow][1] == col) {
+				uniqueLocation = false; 
+				break;
+			}
+			
+		}
+
+		// if we've reached the end of the above for loop, we know that the position we generated is unique
+		if (k == 0) {
+			uniqueLocation = true; 
+		}	
+	}
+	boxLoc[i][0] = row; 
+	boxLoc[i][1] = col; 
+	occupiedPositions[occupiedPosRow][0] = row;
+	occupiedPositions[occupiedPosRow][1] = col;
+	occupiedPosRow++; 
+
+    } 
+
+  // fill the box array with random locations
+  for (int i=0; i<numBoxes; i++) {
+	srand(time(0));
+	bool uniqueLocation = false;
+	int row, col; 
+
+	while (uniqueLocation == false) {
+        	row = rand() % (numRows - 1);
+		col = rand() % (numCols - 1);
+
+		// check if values are already occupied
+		int k;
+		for (k=occupiedPosRow; k>=0; k--) {
+			if (occupiedPositions[occupiedPosRow][0] == row && occupiedPositions[occupiedPosRow][1] == col) {
+				uniqueLocation = false; 
+				break;
+			}
+			
+		}
+
+		// if we've reached the end of the above for loop, we know that the position we generated is unique
+		if (k == 0) {
+			uniqueLocation = true; 
+		}	
+	}
+	boxLoc[i][0] = row; 
+	boxLoc[i][1] = col; 
+	occupiedPositions[occupiedPosRow][0] = row;
+	occupiedPositions[occupiedPosRow][1] = col;
+	occupiedPosRow++; 
+
+    }   
+}
 
 void moveRobot(unsigned robot, char dir)
 {
-  
+        FILE *fp;
         bool boxPushed = false; 
         fp = fopen("robotSimulOut.txt", "ab"); 
 	switch(dir)
@@ -359,6 +511,7 @@ int main(int argc, char** argv)
 		return 1;
 	}
 
+
 	//	Even though we extracted the relevant information from the argument
 	//	list, I still need to pass argc and argv to the front-end init
 	//	function because that function passes them to glutInit, the required call
@@ -423,7 +576,7 @@ void initializeApplication(void)
 	//	normally, here I would initialize the location of my doors, boxes,
 	//	and robots, and create threads (not necessarily in that order).
 	//	For the handout I have nothing to do.
-	
+	randomlyGeneratePositions();
 
 	//start main thread
 	pthread_t mainThread;
