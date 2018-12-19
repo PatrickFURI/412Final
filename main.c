@@ -90,8 +90,8 @@ void randomArray(int count, int ***arrayPtr)
 		array[i] = malloc(2 * sizeof(int));
 		do
 		{
-			array[i][0] = (rand() % (numRows - 1)) + 1;
-			array[i][1] = (rand() % (numCols - 1)) + 1;
+			array[i][0] = (rand() % (numCols - 2)) + 1;
+			array[i][1] = (rand() % (numRows - 2)) + 1;
 		} while(inArray(array, i, robotLoc) || inArray(array, i, boxLoc) ||inArray(array, i, doorLoc));
 	}
 }
@@ -231,6 +231,24 @@ void solveRobot(unsigned robot)
 			moveRobot(robot, 'S');
 			dyRob++;
 		}
+		if(dyRob == 2 && boxLoc[robot][1] - robotLoc[robot][1] == 1)
+		{
+			moveRobot(robot, 'E');
+			moveRobot(robot, 'N');
+			moveRobot(robot, 'N');
+			moveRobot(robot, 'W');
+			dxRob = 0;
+			break;
+		}
+		if(dyRob == -2 && boxLoc[robot][1] - robotLoc[robot][1] == -1)
+		{
+			moveRobot(robot, 'W');
+			moveRobot(robot, 'S');
+			moveRobot(robot, 'S');
+			moveRobot(robot, 'E');
+			dxRob = 0;
+			break;
+		}
 	}
 	//go to correct x position for box
 	while(dxBox != 0)
@@ -240,7 +258,7 @@ void solveRobot(unsigned robot)
 			moveRobot(robot, 'W');
 			dxBox--;
 			//go to correct position to push
-			if(dxBox == 0)
+			if(dxBox == 0 && dyBox != 0)
 			{
 				if(dyBox > 0)
 					moveRobot(robot, 'S');
@@ -254,7 +272,7 @@ void solveRobot(unsigned robot)
 			moveRobot(robot, 'E');
 			dxBox++;
 			//go to correct position to push
-			if(dxBox == 0)
+			if(dxBox == 0 && dyBox != 0)
 			{
 				if(dyBox > 0)
 					moveRobot(robot, 'S');
@@ -278,6 +296,11 @@ void solveRobot(unsigned robot)
 			dyBox++;
 		}
 	}
+	//remove completed box and robot
+	boxLoc[robot][0] = -1;
+	boxLoc[robot][0] = -1;
+	robotLoc[robot][1] = -1;
+	robotLoc[robot][1] = -1;
 }
 
 /*! \brief Function for main logic thread to run.
