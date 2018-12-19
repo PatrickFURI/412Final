@@ -63,6 +63,29 @@ int **doorLoc = NULL;
 FILE *fp;
 pthread_mutex_t *fpLock;
 
+void printoutPositionInfo() {
+	pthread_mutex_lock(fpLock);
+	// printout door positions
+	for (int i = 0; i < numDoors; i++) {
+		fprintf(fp, "Door %d: %d x %d (r x c)\n", i, doorLoc[i][0], doorLoc[i][1]);
+	}
+	fprintf(fp, "\n");
+	
+	// printout box information
+	for (int i = 0; i < numBoxes; i++) {
+		fprintf(fp, "Box %d: %d x %d (r x c)\n", i, boxLoc[i][0], boxLoc[i][1]); 
+	}
+	fprintf(fp, "\n");
+
+	// printout robot information (with its destination door)
+	for (int i = 0; i < numBoxes; i++) {
+		fprintf(fp, "Robot %d: %d x %d (r x c) at desination door: %d\n", 
+				i, robotLoc[i][0], robotLoc[i][1], doorAssign[i]); 
+	}
+        fprintf(fp, "\n");
+	pthread_mutex_unlock(fpLock);
+}
+
 /*! \brief Test if position is in array.
 \param curArray Array currently being populated.
 \param index Index to test in current array.
