@@ -60,7 +60,8 @@ int *doorAssign = NULL;
 int **doorLoc = NULL;
 
 //output file pointer
-FILE *fp; 
+FILE *fp;
+pthread_mutex_t *fpLock;
 
 /*! \brief Test if position is in array.
 \param curArray Array currently being populated.
@@ -154,18 +155,22 @@ void moveRobot(unsigned robot, char dir)
 			break;
 	}
 	usleep(robotSleepTime);
+	pthread_mutex_lock(fpLock);
 	if (boxPushed) {
 	       fprintf(fp, "%s %d %s %c\n", "robot", robot, "push", dir);
 	} else {
 	       fprintf(fp, "%s %d %s %c\n", "robot", robot, "move", dir);
 	}
+	pthread_mutex_unlock(fpLock);
 }
 
 /*! \brief Solves problem for robot.
-\param robot Robot number to solve for.
+\param arg Pointer to robot number to solve for.
+\return NULL
 */
-void solveRobot(unsigned robot)
+void *solveRobot(void *arg)
 {
+	unsigned robot = *((unsigned *)arg);
 	//find amount robot should move to reach box
 	int dxRob=boxLoc[robot][0] - robotLoc[robot][0];
 	int dyRob=boxLoc[robot][1] - robotLoc[robot][1];
@@ -185,7 +190,7 @@ void solveRobot(unsigned robot)
 			dyRob++;
 		//problem was solved by other robot since box is on door
 		else
-			return;
+			return NULL;
 	
 	//go to correct x position for robot
 	while(dxRob != 0)
@@ -302,6 +307,9 @@ void solveRobot(unsigned robot)
 	boxLoc[robot][0] = -1;
 	robotLoc[robot][1] = -1;
 	robotLoc[robot][1] = -1;
+	
+	free(arg);
+	return NULL;
 }
 
 /*! \brief Function for main logic thread to run.
@@ -311,8 +319,20 @@ void solveRobot(unsigned robot)
 void *mainThreadFunc(void *arg)
 {
 	for(unsigned i = 0; i < (unsigned)numBoxes; i++)
-		solveRobot(i);
-	
+	{
+		//start threads
+		pthread_t thread;
+		unsigned *temp = malloc(sizeof(unsigned));
+		*temp = i;
+		int errCode = pthread_create(&thread, NULL, solveRobot, temp);
+		if (errCode != 0)
+		{
+			printf ("could not pthread_create main thread. Error code %d: %s\n",
+				 errCode, strerror(errCode));
+			exit (13);
+		}
+	}
+
 	return NULL;
 }
 
@@ -430,6 +450,8 @@ int main(int argc, char** argv)
 		fprintf(stderr, "Program supports only 1 to 3 doors\n");
 		return 1;
 	}
+	fpLock = calloc(1, sizeof(pthread_mutex_t));
+	pthread_mutex_init(fpLock, NULL);
 	fp = fopen("robotSimulOut.txt", "w");
 
 	//	Even though we extracted the relevant information from the argument
